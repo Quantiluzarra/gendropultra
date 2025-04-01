@@ -3,435 +3,741 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Генератор изображений по тексту</title>
+    <title>Генератор изображений PRO</title>
     <style>
+        /* --- Строгая Цветовая Палитра и Переменные --- */
         :root {
-            --background: #1e1e1e;
-            --text: #ffffff;
-            --accent: #007BFF;
-            --accent-hover: #0056b3;
-            --button-bg: #007BFF;
-            --button-hover: #0056b3;
-            --panel-bg: #2d2d2d;
-            --border: #444;
+            /* AMOLED (Dark) Theme */
+            --bg-color: #000000;
+            --container-bg: #1a1a1a;
+            --input-bg: #2b2b2b;
+            --input-border: #444;
+            --text-color: #e0e0e0;
+            --text-light-color: #aaaaaa;
+            --primary-color: #007bff; /* Основной синий */
+            --primary-light: #3399ff; /* Светлее для hover */
+            --primary-dark: #0056b3;  /* Темнее для active */
+            --primary-text: #ffffff; /* Текст на синих кнопках */
+            --shadow-color: rgba(0, 80, 150, 0.1); /* Синеватый оттенок тени */
+            --loader-dot-color: var(--primary-light);
+            --settings-icon-color: #888;
+            --settings-icon-hover: var(--primary-light);
+            --settings-panel-bg: #222;
+            --button-outline-border: var(--primary-color);
+            --button-outline-text: var(--primary-light);
+            --button-outline-hover-bg: rgba(0, 123, 255, 0.1);
+
+            --transition-fast: 0.2s;
+            --transition-medium: 0.3s;
+            --transition-slow: 0.4s;
         }
 
-        body.light {
-            --background: #f0f0f0;
-            --text: #000000;
-            --panel-bg: #ffffff;
-            --border: #ccc;
+        body.light-theme {
+            --bg-color: #f0f4f8; /* Очень светлый серо-голубой фон */
+            --container-bg: #ffffff;
+            --input-bg: #eef2f7; /* Слегка голубоватый инпут */
+            --input-border: #d0d8e0;
+            --text-color: #333333;
+            --text-light-color: #666666;
+            --primary-color: #007bff;
+            --primary-light: #3399ff;
+            --primary-dark: #0056b3;
+            --primary-text: #ffffff;
+            --shadow-color: rgba(0, 80, 150, 0.15);
+            --loader-dot-color: var(--primary-color);
+            --settings-icon-color: #555;
+            --settings-icon-hover: var(--primary-dark);
+            --settings-panel-bg: #f8fafd;
+            --button-outline-border: var(--primary-color);
+            --button-outline-text: var(--primary-color);
+            --button-outline-hover-bg: rgba(0, 123, 255, 0.08);
         }
 
-        body.amoled {
-            --background: #000000;
-            --text: #ffffff;
-            --panel-bg: #1e1e1e;
-            --border: #333;
+        /* --- Общие стили --- */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: var(--background);
-            color: var(--text);
-            margin: 0;
-            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            flex-direction: column;
-            transition: background-color 0.5s ease, color 0.5s ease;
+            padding: 20px;
+            transition: background-color var(--transition-medium) ease, color var(--transition-medium) ease;
         }
 
         .container {
-            background-color: var(--panel-bg);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 500px;
+            background-color: var(--container-bg);
+            padding: 30px 35px;
+            border-radius: 16px; /* Более скругленный */
+            box-shadow: 0 10px 30px var(--shadow-color);
+            width: 100%;
+            max-width: 580px; /* Немного шире */
             text-align: center;
             position: relative;
-            transition: background-color 0.5s ease;
+            transition: background-color var(--transition-medium) ease, box-shadow var(--transition-medium) ease;
+            overflow: hidden; /* Для анимации настроек */
         }
 
         h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: var(--accent);
-            animation: slideIn 0.5s ease;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            font-size: 28px; /* Чуть крупнее */
+            margin-bottom: 30px;
+            color: var(--primary-light); /* Используем светлый синий для заголовка */
+            font-weight: 600;
+            transition: color var(--transition-medium) ease;
         }
 
         #inputText {
-            width: calc(100% - 40px);
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 5px;
-            background-color: var(--background);
-            color: var(--text);
-            margin-bottom: 10px;
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--input-border);
+            border-radius: 10px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            margin-bottom: 15px;
             font-size: 16px;
-            transition: border-color 0.3s ease, transform 0.2s ease;
+            transition: background-color var(--transition-medium) ease, border-color var(--transition-medium) ease, color var(--transition-medium) ease, box-shadow var(--transition-fast) ease;
         }
-
+        #inputText::placeholder {
+            color: var(--text-light-color);
+            opacity: 0.8;
+        }
         #inputText:focus {
-            border-color: var(--accent);
-            transform: scale(1.02);
             outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2); /* Синее свечение при фокусе */
         }
 
-        #aspectRatio {
-            padding: 8px;
-            border-radius: 5px;
-            background-color: var(--background);
-            color: var(--text);
-            border: 1px solid var(--border);
-            margin-bottom: 10px;
-            transition: background-color 0.3s ease;
-        }
-
-        #generateButton, #downloadButton, #regenerateButton {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
+        /* --- Кнопки (Новый Дизайн) --- */
+        .button-base { /* Общий стиль для всех кнопок */
+            padding: 12px 25px;
+            border-radius: 10px;
             cursor: pointer;
-            margin: 5px;
-            transition: transform 0.2s ease, background-color 0.3s ease;
             font-size: 16px;
-            background-color: var(--button-bg);
-            color: white;
-        }
-
-        #generateButton:hover, #downloadButton:hover, #regenerateButton:hover {
-            background-color: var(--button-hover);
-            transform: scale(1.05);
-        }
-
-        #generateButton:active, #downloadButton:active, #regenerateButton:active {
-            transform: scale(0.95);
-        }
-
-        #loading {
-            display: none;
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: var(--accent);
+            font-weight: 500;
+            border: none;
+            transition: background-color var(--transition-fast) ease, color var(--transition-fast) ease, border-color var(--transition-fast) ease, transform var(--transition-fast) ease, box-shadow var(--transition-fast) ease;
+            display: inline-flex; /* Для выравнивания */
             align-items: center;
             justify-content: center;
+            gap: 8px; /* Расстояние для иконок, если будут */
+            text-decoration: none; /* Для ссылок-кнопок */
+            white-space: nowrap; /* Предотвращение переноса текста */
+        }
+        .button-base:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.15);
+        }
+         .button-base:active {
+            transform: translateY(0px);
+            box-shadow: none;
         }
 
-        .spinner {
-            border: 4px solid var(--accent);
-            border-top: 4px solid var(--text);
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-right: 10px;
+        /* Основная кнопка (Сгенерировать) */
+        .button-primary {
+            background-color: var(--primary-color);
+            color: var(--primary-text);
+        }
+        .button-primary:hover {
+            background-color: var(--primary-light);
+        }
+         .button-primary:active {
+            background-color: var(--primary-dark);
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        /* Контурная кнопка (Скачать/Другое) */
+        .button-outline {
+            background-color: transparent;
+            color: var(--button-outline-text);
+            border: 1px solid var(--button-outline-border);
+        }
+        .button-outline:hover {
+            background-color: var(--button-outline-hover-bg);
+            border-color: var(--primary-light);
+            color: var(--primary-light);
+        }
+        .button-outline:active {
+             background-color: rgba(0, 123, 255, 0.15);
+             border-color: var(--primary-dark);
+             color: var(--primary-dark);
         }
 
-        #progressBar {
-            width: 100%;
-            height: 10px;
-            background-color: var(--border);
-            border-radius: 5px;
-            margin-bottom: 20px;
-            overflow: hidden;
-            display: none;
+        #generateButton {
+             margin-bottom: 25px;
+             width: 100%; /* Растянем основную кнопку */
+             padding: 15px 25px; /* Сделаем ее повыше */
+             font-size: 17px;
+             font-weight: 600;
         }
 
-        #progressBarFill {
-            width: 0%;
-            height: 100%;
-            background-color: var(--accent);
-            transition: width 0.5s ease-in-out;
+        /* Выбор соотношения сторон */
+        .ratio-selector {
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap; /* Перенос на мобильных */
+            gap: 10px;
+        }
+        .ratio-button { /* Используем базовый контурный стиль */
+            padding: 8px 15px; /* Поменьше */
+            font-size: 14px;
+            min-width: 60px; /* Минимальная ширина */
+        }
+        .ratio-button.active { /* Активная кнопка - стиль primary */
+            background-color: var(--primary-color);
+            color: var(--primary-text);
+            border-color: var(--primary-color);
+            font-weight: 600;
+        }
+        .ratio-button.active:hover {
+            background-color: var(--primary-light);
+            border-color: var(--primary-light);
         }
 
+        /* --- Загрузчик (Новый Дизайн) --- */
+        #loading {
+            display: none; /* Скрыт по умолчанию */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            min-height: 80px; /* Чтобы контейнер не прыгал */
+        }
+        .loader-dots {
+             display: flex;
+             gap: 10px;
+        }
+        .loader-dot {
+             width: 12px;
+             height: 12px;
+             background-color: var(--loader-dot-color);
+             border-radius: 50%;
+             animation: pulse 1.4s infinite ease-in-out both;
+        }
+        .loader-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loader-dot:nth-child(2) { animation-delay: -0.16s; }
+        #loading-text {
+             margin-top: 15px;
+             font-size: 15px;
+             color: var(--text-light-color);
+        }
+
+        @keyframes pulse {
+             0%, 80%, 100% { transform: scale(0); }
+             40% { transform: scale(1.0); }
+        }
+
+        /* --- Контейнер Изображения --- */
         #imageContainer {
-            display: none;
-            margin-bottom: 20px;
+            display: none; /* Скрыт */
+            margin-top: 20px;
+            opacity: 0;
+            transform: translateY(15px);
+            animation: fadeInSlideUp 0.5s var(--transition-medium) cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
         }
-
         #generatedImage {
             max-width: 100%;
-            border-radius: 5px;
-            animation: fadeInScale 1s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border-radius: 12px; /* Совпадаем с контейнером */
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px var(--shadow-color);
+            display: block; /* Убираем лишний отступ снизу */
+            background-color: var(--input-bg); /* Фон для прозрачных PNG */
+        }
+        .image-controls {
+             display: flex;
+             justify-content: center;
+             flex-wrap: wrap;
+             gap: 15px; /* Больше расстояние */
+        }
+        /* Кнопки Скачать и Другое уже стилизованы через .button-outline */
+
+        @keyframes fadeInSlideUp {
+             from { opacity: 0; transform: translateY(15px); }
+             to { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes fadeInScale {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        #settingsButton {
+        /* --- Настройки (Новый Дизайн) --- */
+        #settingsIcon {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 24px;
+            top: 18px;
+            right: 20px;
+            font-size: 22px;
             cursor: pointer;
-            color: var(--text);
-            transition: transform 0.2s ease;
+            color: var(--settings-icon-color);
+            transition: color var(--transition-fast) ease, transform var(--transition-medium) cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Эффект "пружины" */
+            z-index: 101;
+            padding: 5px; /* Увеличиваем область клика */
         }
-
-        #settingsButton:hover {
-            transform: rotate(90deg);
+        #settingsIcon:hover {
+             color: var(--settings-icon-hover);
+             transform: rotate(120deg) scale(1.1);
+        }
+        #settingsIcon::before {
+            content: '⚙️';
         }
 
         #settingsPanel {
-            position: fixed;
-            top: 0;
-            right: -300px;
-            width: 250px;
-            height: 100%;
-            background-color: var(--panel-bg);
-            padding: 20px;
-            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
-            transition: right 0.3s ease;
-            z-index: 1000;
-        }
-
-        #settingsPanel.open {
-            right: 0;
-        }
-
-        #closeSettings {
-            background: none;
-            border: none;
-            color: var(--text);
-            font-size: 20px;
-            cursor: pointer;
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 0;
+            right: 0;
+            width: 240px; /* Немного шире */
+            height: 100%;
+            background-color: var(--settings-panel-bg);
+            border-radius: 0 16px 16px 0;
+            box-shadow: -8px 0px 25px rgba(0, 0, 0, 0.15); /* Заметнее тень */
+            padding: 25px;
+            padding-top: 70px; /* Место для кнопки закрытия */
+            transform: translateX(100%);
+            visibility: hidden;
+            transition: transform var(--transition-slow) cubic-bezier(0.4, 0, 0.2, 1), visibility var(--transition-slow);
+            z-index: 100;
+        }
+        #settingsPanel.open {
+             transform: translateX(0);
+             visibility: visible;
         }
 
+        .settings-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Больше отступ */
+        }
+         .settings-section-title {
+              font-size: 14px;
+              font-weight: 600;
+              color: var(--text-light-color);
+              margin-bottom: 5px;
+              text-align: left;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+         }
+
+        /* Новый переключатель темы */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .theme-switch-label {
+             font-size: 15px;
+             color: var(--text-color);
+        }
+        .theme-switch {
+            display: inline-block;
+            height: 28px; /* Повыше */
+            position: relative;
+            width: 52px; /* Пошире */
+        }
+        .theme-switch input { display:none; }
+
+        .slider-track {
+            background-color: var(--input-bg); /* Фон трека */
+            border: 1px solid var(--input-border);
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: background-color var(--transition-medium) ease, border-color var(--transition-medium) ease;
+            border-radius: 28px;
+        }
+        .slider-thumb {
+            background-color: var(--text-light-color); /* Цвет неактивного ползунка */
+            bottom: 4px;
+            content: "";
+            height: 20px; /* Размер ползунка */
+            left: 4px;
+            position: absolute;
+            transition: transform var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), background-color var(--transition-medium) ease;
+            width: 20px;
+            border-radius: 50%;
+        }
+        input:checked + .slider-track {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        input:checked + .slider-track .slider-thumb {
+            background-color: var(--primary-text); /* Белый ползунок на синем */
+            transform: translateX(24px);
+        }
+
+        /* --- Футер --- */
         .footer {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            font-size: 12px;
-            color: var(--text);
+            margin-top: 30px; /* Больше отступ */
+            width: 100%;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-light-color);
+            opacity: 0.8;
         }
-
         .footer a {
-            color: var(--accent);
+            color: var(--primary-light); /* Синяя ссылка */
             text-decoration: none;
+            font-weight: 500;
+            transition: color var(--transition-fast) ease;
         }
-
         .footer a:hover {
+            color: var(--primary-color);
             text-decoration: underline;
         }
 
-        @media (max-width: 600px) {
+        /* --- Адаптивность --- */
+        @media (max-width: 640px) {
+            body { padding: 15px; }
             .container {
-                width: 95%;
-                padding: 15px;
+                padding: 25px 20px;
+                 max-width: none;
             }
-            h1 {
-                font-size: 20px;
-            }
-            #inputText, #aspectRatio, #generateButton, #downloadButton, #regenerateButton {
-                font-size: 14px;
-            }
-            #settingsPanel {
-                width: 100%;
-                right: -100%;
-            }
-            #settingsPanel.open {
-                right: 0;
-            }
+            h1 { font-size: 24px; margin-bottom: 25px;}
+            #inputText { padding: 12px 14px; font-size: 15px;}
+            .button-base { padding: 10px 20px; font-size: 15px; }
+            #generateButton { padding: 14px 20px; font-size: 16px; }
+            .ratio-selector { gap: 8px; }
+            .ratio-button { padding: 7px 12px; font-size: 13px; min-width: 55px; }
+            #settingsPanel { width: 220px; padding: 20px; padding-top: 60px; }
+             .theme-switch-label { font-size: 14px; }
+             .footer { font-size: 12px; margin-top: 25px; }
         }
+
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Генератор изображений по тексту</h1>
-        <input type="text" id="inputText" placeholder="Введите описание изображения...">
-        <select id="aspectRatio">
-            <option value="1:1">1:1 (Квадрат)</option>
-            <option value="16:9">16:9 (Широкий)</option>
-            <option value="4:3">4:3 (Стандарт)</option>
-        </select>
-        <button id="generateButton">Сгенерировать</button>
-        <div id="loading">
-            <div class="spinner"></div>
-            Генерация изображения...
-        </div>
-        <div id="progressBar">
-            <div id="progressBarFill"></div>
-        </div>
-        <div id="imageContainer">
-            <img id="generatedImage" src="" alt="Сгенерированное изображение">
-            <div>
-                <button id="downloadButton">Скачать</button>
-                <button id="regenerateButton">Сгенерировать другое</button>
-            </div>
-        </div>
-        <button id="settingsButton">⚙️</button>
-    </div>
+
+<div class="container">
+    <div id="settingsIcon" title="Настройки"></div>
 
     <div id="settingsPanel">
-        <button id="closeSettings">✖️</button>
-        <h2>Настройки</h2>
-        <label>
-            <input type="radio" name="theme" value="dark" checked> Темная тема
-        </label><br>
-        <label>
-            <input type="radio" name="theme" value="light"> Светлая тема
-        </label><br>
-        <label>
-            <input type="radio" name="theme" value="amoled"> AMOLED тема
-        </label>
+        <div class="settings-content">
+             <div class="settings-section">
+                  <div class="settings-section-title">Тема</div>
+                  <div class="theme-switch-wrapper">
+                      <span class="theme-switch-label" id="themeLabel">AMOLED (Тёмная)</span>
+                      <label class="theme-switch">
+                          <input type="checkbox" id="themeToggle">
+                          <div class="slider-track">
+                               <div class="slider-thumb"></div>
+                          </div>
+                      </label>
+                  </div>
+             </div>
+             </div>
     </div>
 
-    <div class="footer">
-        Разработано: <a href="https://t.me/+08Jc-04X_M5mMDQy" target="_blank">AjinCry.Cn X</a>
+    <h1>Генератор PRO</h1>
+
+    <input type="text" id="inputText" placeholder="Опишите ваше будущее изображение...">
+
+    <div class="ratio-selector">
+        <button class="ratio-button button-outline active" data-ratio="1:1">1:1</button>
+        <button class="ratio-button button-outline" data-ratio="16:9">16:9</button>
+        <button class="ratio-button button-outline" data-ratio="9:16">9:16</button>
+        <button class="ratio-button button-outline" data-ratio="4:3">4:3</button>
+         <button class="ratio-button button-outline" data-ratio="3:4">3:4</button>
     </div>
 
-    <script>
-        async function generateImageFromText(text, aspectRatio) {
-            try {
-                const totalSteps = 10;
-                let progress = 0;
+    <button id="generateButton" class="button-base button-primary">Сгенерировать ✨</button>
 
-                const updateProgress = () => {
-                    progress += 1;
-                    const percent = (progress / totalSteps) * 100;
-                    document.getElementById('progressBarFill').style.width = `${percent}%`;
-                };
+    <div id="loading">
+        <div class="loader-dots">
+             <div class="loader-dot"></div>
+             <div class="loader-dot"></div>
+             <div class="loader-dot"></div>
+        </div>
+        <div id="loading-text">Магия генерации в процессе...</div>
+    </div>
 
-                const [widthRatio, heightRatio] = aspectRatio.split(':').map(Number);
-                const baseWidth = 400;
-                const canvasWidth = baseWidth;
-                const canvasHeight = (baseWidth * heightRatio) / widthRatio;
+    <div id="imageContainer">
+        <img id="generatedImage" src="" alt="Сгенерированное изображение">
+        <div class="image-controls">
+             <button id="downloadButton" class="button-base button-outline">Скачать</button>
+            <button id="regenerateButton" class="button-base button-outline">Новый вариант</button>
+        </div>
+    </div>
+</div>
 
-                const canvas = document.createElement('canvas');
-                canvas.width = canvasWidth;
-                canvas.height = canvasHeight;
-                const ctx = canvas.getContext('2d');
+<div class="footer">
+    Разработано: <a href="https://t.me/+08Jc-04X_M5mMDQy" target="_blank">AjinCry.Cn X</a> & Gemini AI
+</div>
 
-                ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--background');
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+<script>
+    // --- DOM Элементы ---
+    const inputText = document.getElementById('inputText');
+    const generateButton = document.getElementById('generateButton');
+    const loadingIndicator = document.getElementById('loading');
+    const imageContainer = document.getElementById('imageContainer');
+    const generatedImage = document.getElementById('generatedImage');
+    const downloadButton = document.getElementById('downloadButton');
+    const regenerateButton = document.getElementById('regenerateButton');
+    const settingsIcon = document.getElementById('settingsIcon');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const themeToggle = document.getElementById('themeToggle');
+    const themeLabel = document.getElementById('themeLabel');
+    const ratioButtons = document.querySelectorAll('.ratio-button');
+    const body = document.body;
 
-                ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text');
-                ctx.font = '20px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+    let currentImageUrl = null;
+    let currentText = '';
+    let currentAspectRatio = '1:1';
+    let isGenerating = false; // Флаг для предотвращения двойного запуска
 
-                for (let i = 0; i < totalSteps; i++) {
-                    await new Promise(resolve => setTimeout(resolve, 300));
-                    updateProgress();
-                }
+    // --- Инициализация темы ---
+    function applyTheme(theme) {
+        body.classList.toggle('light-theme', theme === 'light');
+        themeToggle.checked = (theme === 'light');
+        themeLabel.textContent = (theme === 'light') ? 'Светлая' : 'AMOLED (Тёмная)';
+         // Обновляем изображение на canvas, если оно есть (чтобы фон совпадал)
+         if (currentImageUrl && currentText) {
+              // Нужно перерисовать canvas с новыми цветами темы
+              // Это сложнее, т.к. canvas уже растровый. Проще заново сгенерировать
+              // или стилизовать фон img через CSS, как сделано сейчас
+              // generatedImage.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--input-bg').trim();
+         }
+    }
 
-                return canvas.toDataURL('image/png');
-            } catch (error) {
-                console.error("Ошибка генерации:", error);
-                alert("Не удалось сгенерировать изображение.");
-                return null;
-            }
-        }
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    applyTheme(savedTheme);
 
-        function downloadImage(imageUrl, filename) {
-            const link = document.createElement('a');
-            link.href = imageUrl;
-            link.download = filename;
-            link.click();
-        }
+    // --- Обработчики событий ---
 
-        document.getElementById('generateButton').addEventListener('click', async () => {
-            const inputText = document.getElementById('inputText').value.trim();
-            const aspectRatio = document.getElementById('aspectRatio').value;
+    // Генерация изображения
+    generateButton.addEventListener('click', () => handleGenerate(false)); // false = не регенерация
+    regenerateButton.addEventListener('click', () => handleGenerate(true)); // true = регенерация
 
-            if (!inputText) {
-                alert('Пожалуйста, введите описание изображения.');
-                return;
-            }
+    // Выбор соотношения сторон
+    ratioButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            if (isGenerating) return; // Не меняем во время генерации
+            ratioButtons.forEach(btn => btn.classList.remove('active', 'button-primary')); // Сбрасываем стиль
+             ratioButtons.forEach(btn => btn.classList.add('button-outline')); // Всем контурный
 
-            document.getElementById('loading').style.display = 'flex';
-            document.getElementById('progressBar').style.display = 'block';
-            document.getElementById('imageContainer').style.display = 'none';
-
-            const imageUrl = await generateImageFromText(inputText, aspectRatio);
-
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('progressBar').style.display = 'none';
-            if (imageUrl) {
-                document.getElementById('generatedImage').src = imageUrl;
-                document.getElementById('imageContainer').style.display = 'block';
-
-                document.getElementById('downloadButton').onclick = () => {
-                    downloadImage(imageUrl, 'generated-image.png');
-                };
-
-                document.getElementById('regenerateButton').onclick = async () => {
-                    document.getElementById('loading').style.display = 'flex';
-                    document.getElementById('progressBar').style.display = 'block';
-                    document.getElementById('imageContainer').style.display = 'none';
-
-                    const newImageUrl = await generateImageFromText(inputText, aspectRatio);
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('progressBar').style.display = 'none';
-                    if (newImageUrl) {
-                        document.getElementById('generatedImage').src = newImageUrl;
-                        document.getElementById('imageContainer').style.display = 'block';
-                    }
-                };
-            }
+            button.classList.add('active', 'button-primary'); // Активной кнопке - основной стиль
+            button.classList.remove('button-outline');
+            currentAspectRatio = button.getAttribute('data-ratio');
         });
+    });
 
-        const settingsButton = document.getElementById('settingsButton');
-        const settingsPanel = document.getElementById('settingsPanel');
-        const closeSettings = document.getElementById('closeSettings');
-        const themeRadios = document.querySelectorAll('input[name="theme"]');
+    // Открытие/закрытие настроек
+    settingsIcon.addEventListener('click', (e) => {
+        e.stopPropagation(); // Важно! Останавливаем всплытие
+        settingsPanel.classList.toggle('open');
+    });
 
-        settingsButton.addEventListener('click', () => {
-            settingsPanel.classList.add('open');
-        });
-
-        closeSettings.addEventListener('click', () => {
+    // Закрытие настроек при клике вне панели - ИСПРАВЛЕНО
+    document.addEventListener('click', (e) => {
+        // Проверяем, открыта ли панель И клик был НЕ по панели И НЕ по иконке
+        if (settingsPanel.classList.contains('open') && !settingsPanel.contains(e.target) && e.target !== settingsIcon) {
             settingsPanel.classList.remove('open');
-        });
-
-        themeRadios.forEach(radio => {
-            radio.addEventListener('change', () => {
-                document.body.classList.remove('light', 'amoled');
-                if (radio.value === 'light') {
-                    document.body.classList.add('light');
-                } else if (radio.value === 'amoled') {
-                    document.body.classList.add('amoled');
-                }
-                localStorage.setItem('theme', radio.value);
-            });
-        });
-
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) {
-            document.body.classList.remove('light', 'amoled');
-            if (savedTheme === 'light') {
-                document.body.classList.add('light');
-                document.querySelector('input[value="light"]').checked = true;
-            } else if (savedTheme === 'amoled') {
-                document.body.classList.add('amoled');
-                document.querySelector('input[value="amoled"]').checked = true;
-            } else {
-                document.querySelector('input[value="dark"]').checked = true;
-            }
         }
-    </script>
+    });
+
+
+    // Переключение темы
+    themeToggle.addEventListener('change', () => {
+        const newTheme = themeToggle.checked ? 'light' : 'dark';
+        applyTheme(newTheme);
+        localStorage.setItem('theme', newTheme);
+    });
+
+    // Скачивание изображения
+    downloadButton.addEventListener('click', () => {
+        if (currentImageUrl && currentText) {
+            const safeFilename = currentText.substring(0, 20).replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            downloadImage(currentImageUrl, `generated_${safeFilename}_${currentAspectRatio.replace(':','x')}.png`);
+        }
+    });
+
+     // Нажатие Enter в поле ввода
+     inputText.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+               handleGenerate(false);
+          }
+     });
+
+    // --- Функции ---
+
+    // Основная функция генерации
+    async function handleGenerate(isRegeneration) {
+        if (isGenerating) return; // Предотвращаем повторный запуск
+
+        const textToGenerate = inputText.value.trim();
+        if (!textToGenerate) {
+            alert('Пожалуйста, введите описание изображения.');
+            return;
+        }
+
+         // Если это не регенерация, сохраняем текст
+         if (!isRegeneration) {
+             currentText = textToGenerate;
+         }
+
+        isGenerating = true;
+        setLoadingState(true); // Включаем состояние загрузки
+
+        try {
+            // Имитация генерации
+            const imageUrl = await generateImageFromText(currentText, currentAspectRatio);
+
+            if (imageUrl) {
+                currentImageUrl = imageUrl;
+                generatedImage.src = imageUrl;
+                generatedImage.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--input-bg').trim(); // Фон подложкки
+                // Плавно показываем результат только после загрузки изображения
+                 generatedImage.onload = () => {
+                      setLoadingState(false, true); // Выключаем загрузку, показываем результат
+                 };
+                 generatedImage.onerror = () => {
+                      console.error("Ошибка загрузки изображения в тег img");
+                      alert("Не удалось отобразить сгенерированное изображение.");
+                      setLoadingState(false, false); // Выключаем загрузку, результат не показываем
+                 }
+            } else {
+                 alert("Произошла ошибка при генерации изображения.");
+                 setLoadingState(false, false); // Выключаем загрузку, результат не показываем
+            }
+        } catch (error) {
+             console.error("Критическая ошибка в handleGenerate:", error);
+             alert("Произошла непредвиденная ошибка.");
+             setLoadingState(false, false); // Выключаем загрузку, результат не показываем
+        } finally {
+             // Флаг isGenerating снимается внутри setLoadingState(false)
+        }
+    }
+
+     // Управление состоянием загрузки
+     function setLoadingState(isLoading, showResult = false) {
+          if (isLoading) {
+               loadingIndicator.style.display = 'flex';
+               imageContainer.style.display = 'none';
+               generateButton.disabled = true;
+               regenerateButton.disabled = true;
+               ratioButtons.forEach(btn => btn.disabled = true);
+               inputText.disabled = true;
+               generateButton.style.opacity = '0.7';
+               generateButton.style.cursor = 'wait';
+
+          } else {
+               loadingIndicator.style.display = 'none';
+               if (showResult) {
+                    imageContainer.style.display = 'block'; // Показываем контейнер
+                    // Анимация fadeInSlideUp сработает автоматически через CSS
+               } else {
+                    imageContainer.style.display = 'none';
+               }
+               generateButton.disabled = false;
+               regenerateButton.disabled = false;
+               ratioButtons.forEach(btn => btn.disabled = false);
+               inputText.disabled = false;
+               generateButton.style.opacity = '1';
+               generateButton.style.cursor = 'pointer';
+               isGenerating = false; // Снимаем флаг только когда все закончилось
+          }
+     }
+
+
+    // Функция имитации генерации изображения
+    async function generateImageFromText(text, aspectRatio = '1:1') {
+        console.log(`Генерация для "${text}" с соотношением ${aspectRatio}`);
+        // Получаем актуальные цвета из CSS переменных
+        const style = getComputedStyle(document.documentElement);
+        const canvasBgColor = style.getPropertyValue('--input-bg').trim() || '#2b2b2b';
+        const canvasTextColor = style.getPropertyValue('--text-color').trim() || '#e0e0e0';
+
+        try {
+            // Имитация задержки (1.5 - 3 сек)
+            await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1500));
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Размеры холста
+            const baseWidth = 512;
+            const [ratioW, ratioH] = aspectRatio.split(':').map(Number);
+            let width, height;
+             // Пропорции считаются так, чтобы максимальная сторона была baseWidth
+             if (ratioW >= ratioH) {
+                  width = baseWidth;
+                  height = Math.round(baseWidth * (ratioH / ratioW));
+             } else {
+                  height = baseWidth;
+                  width = Math.round(baseWidth * (ratioW / ratioH));
+             }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            // Фон холста
+            ctx.fillStyle = canvasBgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Текст
+            ctx.fillStyle = canvasTextColor;
+            const fontSize = Math.max(14, Math.min(28, Math.floor(width / 18))); // Адаптивный размер
+            ctx.font = `500 ${fontSize}px system-ui, sans-serif`; // Используем системный шрифт
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Перенос строк
+            const maxLineWidth = canvas.width * 0.85;
+            const words = text.split(' ');
+            let line = '';
+            const lines = [];
+            for(let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                let metrics = ctx.measureText(testLine);
+                if (metrics.width > maxLineWidth && n > 0) {
+                    lines.push(line.trim());
+                    line = words[n] + ' ';
+                } else {
+                    line = testLine;
+                }
+            }
+            lines.push(line.trim());
+
+            // Рисуем строки
+            const lineHeight = fontSize * 1.3;
+            const totalTextHeight = lines.length * lineHeight;
+            // Центрируем блок текста по вертикали
+            const startY = (canvas.height - totalTextHeight) / 2 + (lineHeight / 2) - (fontSize * 0.1); // Небольшая коррекция для middle baseline
+
+             lines.forEach((singleLine, index) => {
+                 ctx.fillText(singleLine, canvas.width / 2, startY + index * lineHeight);
+             });
+
+            return canvas.toDataURL('image/png');
+
+        } catch (error) {
+            console.error("Ошибка генерации изображения:", error);
+            return null;
+        }
+    }
+
+    // Функция для скачивания изображения
+    function downloadImage(imageUrl, filename) {
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+     // --- Инициализация активной кнопки соотношения ---
+     // Находим активную кнопку при загрузке и применяем стили
+     const initialActiveRatio = document.querySelector(`.ratio-button[data-ratio="${currentAspectRatio}"]`);
+     if(initialActiveRatio){
+          initialActiveRatio.classList.add('active', 'button-primary');
+          initialActiveRatio.classList.remove('button-outline');
+     }
+
+
+</script>
+
 </body>
 </html>
