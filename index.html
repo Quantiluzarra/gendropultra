@@ -5,10 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор изображений по тексту</title>
     <style>
+        :root {
+            --background: #1e1e1e;
+            --text: #ffffff;
+            --accent: #007BFF;
+            --accent-hover: #0056b3;
+            --button-bg: #007BFF;
+            --button-hover: #0056b3;
+            --panel-bg: #2d2d2d;
+            --border: #444;
+        }
+
+        body.light {
+            --background: #f0f0f0;
+            --text: #000000;
+            --panel-bg: #ffffff;
+            --border: #ccc;
+        }
+
+        body.amoled {
+            --background: #000000;
+            --text: #ffffff;
+            --panel-bg: #1e1e1e;
+            --border: #333;
+        }
+
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #1e1e1e, #2d2d2d);
-            color: #ffffff;
+            background-color: var(--background);
+            color: var(--text);
             margin: 0;
             padding: 0;
             display: flex;
@@ -16,18 +41,11 @@
             align-items: center;
             min-height: 100vh;
             flex-direction: column;
-            overflow-x: hidden;
-            transition: background 0.5s ease, color 0.5s ease;
-        }
-
-        /* Светлая тема */
-        body.light {
-            background: linear-gradient(135deg, #f0f0f0, #ffffff);
-            color: #000000;
+            transition: background-color 0.5s ease, color 0.5s ease;
         }
 
         .container {
-            background-color: rgba(45, 45, 45, 0.9);
+            background-color: var(--panel-bg);
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -38,14 +56,10 @@
             transition: background-color 0.5s ease;
         }
 
-        body.light .container {
-            background-color: rgba(255, 255, 255, 0.9);
-        }
-
         h1 {
             font-size: 24px;
             margin-bottom: 20px;
-            color: #007BFF;
+            color: var(--accent);
             animation: slideIn 0.5s ease;
         }
 
@@ -57,41 +71,29 @@
         #inputText {
             width: calc(100% - 40px);
             padding: 10px;
-            border: 1px solid #444;
+            border: 1px solid var(--border);
             border-radius: 5px;
-            background-color: #3d3d3d;
-            color: #ffffff;
+            background-color: var(--background);
+            color: var(--text);
             margin-bottom: 10px;
             font-size: 16px;
             transition: border-color 0.3s ease, transform 0.2s ease;
         }
 
         #inputText:focus {
-            border-color: #007BFF;
+            border-color: var(--accent);
             transform: scale(1.02);
             outline: none;
-        }
-
-        body.light #inputText {
-            background-color: #ffffff;
-            color: #000000;
-            border: 1px solid #ccc;
         }
 
         #aspectRatio {
             padding: 8px;
             border-radius: 5px;
-            background-color: #3d3d3d;
-            color: #ffffff;
-            border: 1px solid #444;
+            background-color: var(--background);
+            color: var(--text);
+            border: 1px solid var(--border);
             margin-bottom: 10px;
             transition: background-color 0.3s ease;
-        }
-
-        body.light #aspectRatio {
-            background-color: #ffffff;
-            color: #000000;
-            border: 1px solid #ccc;
         }
 
         #generateButton, #downloadButton, #regenerateButton {
@@ -102,39 +104,16 @@
             margin: 5px;
             transition: transform 0.2s ease, background-color 0.3s ease;
             font-size: 16px;
-        }
-
-        #generateButton {
-            background-color: #007BFF;
+            background-color: var(--button-bg);
             color: white;
         }
 
-        #generateButton:hover {
-            background-color: #0056b3;
+        #generateButton:hover, #downloadButton:hover, #regenerateButton:hover {
+            background-color: var(--button-hover);
             transform: scale(1.05);
         }
 
-        #downloadButton {
-            background-color: #28a745;
-            color: white;
-        }
-
-        #downloadButton:hover {
-            background-color: #218838;
-            transform: scale(1.05);
-        }
-
-        #regenerateButton {
-            background-color: #dc3545;
-            color: white;
-        }
-
-        #regenerateButton:hover {
-            background-color: #c82333;
-            transform: scale(1.05);
-        }
-
-        button:active {
+        #generateButton:active, #downloadButton:active, #regenerateButton:active {
             transform: scale(0.95);
         }
 
@@ -142,25 +121,20 @@
             display: none;
             font-size: 18px;
             margin-bottom: 20px;
-            color: #28a745;
+            color: var(--accent);
             align-items: center;
             justify-content: center;
         }
 
         .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
+            border: 4px solid var(--accent);
+            border-top: 4px solid var(--text);
             border-radius: 50%;
-            border-top: 4px solid #ffffff;
             width: 24px;
             height: 24px;
             animation: spin 1s linear infinite;
             display: inline-block;
             margin-right: 10px;
-        }
-
-        body.light .spinner {
-            border-top: 4px solid #28a745;
-            border: 4px solid rgba(40, 167, 69, 0.3);
         }
 
         @keyframes spin {
@@ -171,21 +145,17 @@
         #progressBar {
             width: 100%;
             height: 10px;
-            background-color: #3d3d3d;
+            background-color: var(--border);
             border-radius: 5px;
             margin-bottom: 20px;
             overflow: hidden;
             display: none;
         }
 
-        body.light #progressBar {
-            background-color: #e0e0e0;
-        }
-
         #progressBarFill {
             width: 0%;
             height: 100%;
-            background-color: #28a745;
+            background-color: var(--accent);
             transition: width 0.5s ease-in-out;
         }
 
@@ -214,12 +184,8 @@
             border: none;
             font-size: 24px;
             cursor: pointer;
-            color: #ffffff;
+            color: var(--text);
             transition: transform 0.2s ease;
-        }
-
-        body.light #settingsButton {
-            color: #000000;
         }
 
         #settingsButton:hover {
@@ -232,20 +198,26 @@
             right: -300px;
             width: 250px;
             height: 100%;
-            background-color: rgba(45, 45, 45, 0.95);
+            background-color: var(--panel-bg);
             padding: 20px;
             box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
             transition: right 0.3s ease;
             z-index: 1000;
         }
 
-        body.light #settingsPanel {
-            background-color: rgba(255, 255, 255, 0.95);
-            color: #000000;
-        }
-
         #settingsPanel.open {
             right: 0;
+        }
+
+        #closeSettings {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 20px;
+            cursor: pointer;
+            position: absolute;
+            top: 10px;
+            right: 10px;
         }
 
         .footer {
@@ -253,15 +225,11 @@
             bottom: 10px;
             right: 10px;
             font-size: 12px;
-            color: #888;
-        }
-
-        body.light .footer {
-            color: #666;
+            color: var(--text);
         }
 
         .footer a {
-            color: #007BFF;
+            color: var(--accent);
             text-decoration: none;
         }
 
@@ -269,7 +237,6 @@
             text-decoration: underline;
         }
 
-        /* Адаптивность */
         @media (max-width: 600px) {
             .container {
                 width: 95%;
@@ -319,9 +286,16 @@
     </div>
 
     <div id="settingsPanel">
+        <button id="closeSettings">✖️</button>
         <h2>Настройки</h2>
         <label>
-            <input type="checkbox" id="themeToggle"> Светлая тема
+            <input type="radio" name="theme" value="dark" checked> Темная тема
+        </label><br>
+        <label>
+            <input type="radio" name="theme" value="light"> Светлая тема
+        </label><br>
+        <label>
+            <input type="radio" name="theme" value="amoled"> AMOLED тема
         </label>
     </div>
 
@@ -330,7 +304,6 @@
     </div>
 
     <script>
-        // Функция для генерации изображения по тексту с учетом соотношения сторон
         async function generateImageFromText(text, aspectRatio) {
             try {
                 const totalSteps = 10;
@@ -352,10 +325,10 @@
                 canvas.height = canvasHeight;
                 const ctx = canvas.getContext('2d');
 
-                ctx.fillStyle = document.body.classList.contains('light') ? '#ffffff' : '#3d3d3d';
+                ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--background');
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                ctx.fillStyle = document.body.classList.contains('light') ? '#000000' : '#ffffff';
+                ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text');
                 ctx.font = '20px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText(text, canvas.width / 2, canvas.height / 2);
@@ -373,7 +346,6 @@
             }
         }
 
-        // Функция для скачивания изображения
         function downloadImage(imageUrl, filename) {
             const link = document.createElement('a');
             link.href = imageUrl;
@@ -381,7 +353,6 @@
             link.click();
         }
 
-        // Обработка кнопки "Сгенерировать"
         document.getElementById('generateButton').addEventListener('click', async () => {
             const inputText = document.getElementById('inputText').value.trim();
             const aspectRatio = document.getElementById('aspectRatio').value;
@@ -423,30 +394,43 @@
             }
         });
 
-        // Настройки
         const settingsButton = document.getElementById('settingsButton');
         const settingsPanel = document.getElementById('settingsPanel');
-        const themeToggle = document.getElementById('themeToggle');
+        const closeSettings = document.getElementById('closeSettings');
+        const themeRadios = document.querySelectorAll('input[name="theme"]');
 
         settingsButton.addEventListener('click', () => {
-            settingsPanel.classList.toggle('open');
+            settingsPanel.classList.add('open');
         });
 
-        themeToggle.addEventListener('change', () => {
-            if (themeToggle.checked) {
-                document.body.classList.add('light');
-                localStorage.setItem('theme', 'light');
-            } else {
-                document.body.classList.remove('light');
-                localStorage.setItem('theme', 'dark');
-            }
+        closeSettings.addEventListener('click', () => {
+            settingsPanel.classList.remove('open');
         });
 
-        // Загрузка сохраненной темы
+        themeRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                document.body.classList.remove('light', 'amoled');
+                if (radio.value === 'light') {
+                    document.body.classList.add('light');
+                } else if (radio.value === 'amoled') {
+                    document.body.classList.add('amoled');
+                }
+                localStorage.setItem('theme', radio.value);
+            });
+        });
+
         const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'light') {
-            document.body.classList.add('light');
-            themeToggle.checked = true;
+        if (savedTheme) {
+            document.body.classList.remove('light', 'amoled');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light');
+                document.querySelector('input[value="light"]').checked = true;
+            } else if (savedTheme === 'amoled') {
+                document.body.classList.add('amoled');
+                document.querySelector('input[value="amoled"]').checked = true;
+            } else {
+                document.querySelector('input[value="dark"]').checked = true;
+            }
         }
     </script>
 </body>
